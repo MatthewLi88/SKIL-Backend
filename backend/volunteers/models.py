@@ -20,9 +20,9 @@ class VolunteerProfile(models.Model):
         ('Town Square Events', 'Town Square Events'),
     ]
     areas_of_interest = models.JSONField(default=list, blank=True)  # store selected interests as a list
-    availability = models.CharField(max_length=200, blank=True)     # optional: free text or structured
+    #availability = models.CharField(max_length=200, blank=True)     # optional: free text or structured
     
-    is_active = models.BooleanField(default=True)
+    #is_active = models.BooleanField(default=True)
     
     def __str__(self):
         return self.user.username

@@ -1,7 +1,8 @@
 from django.contrib import admin
-
-# Register your models here.
-from django.contrib import admin
 from .models import VolunteerProfile
+from .forms import VolunteerProfileForm
 
-admin.site.register(VolunteerProfile)
+class VolunteerProfileAdmin(admin.ModelAdmin):
+    form = VolunteerProfileForm
+
+admin.site.register(VolunteerProfile, VolunteerProfileAdmin)

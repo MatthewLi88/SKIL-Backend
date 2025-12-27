@@ -1,12 +1,14 @@
-from django.shortcuts import render, redirect
-from .forms import VolunteerProfileForm
+from django import forms
+from .models import VolunteerProfile
 
-def questionnaire(request):
-    if request.method == 'POST':
-        form = VolunteerProfileForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('thank_you')  # can create a simple thank you page
-    else:
-        form = VolunteerProfileForm()
-    return render(request, 'volunteers/questionnaire.html', {'form': form})
+class VolunteerProfileForm(forms.ModelForm):
+    # Example: areas of interest as checkboxes
+    areas_of_interest = forms.MultipleChoiceField(
+        choices=VolunteerProfile.INTEREST_CHOICES,  # use your model's choices
+        widget=forms.CheckboxSelectMultiple,        # renders as checkboxes
+        required=False
+    )
+
+    class Meta:
+        model = VolunteerProfile
+        fields = '__all__'  # include all fields from the model

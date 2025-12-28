@@ -1,24 +1,8 @@
-#from django.shortcuts import render, redirect
-from .forms import VolunteerProfileForm
-
-#def questionnaire(request):
-#    if request.method == 'POST':
-#        form = VolunteerProfileForm(request.POST)
-#        if form.is_valid():
-#            form.save()
-#            return redirect('thank_you')
-#    else:
-#        form = VolunteerProfileForm()
-#    return render(request, 'volunteers/questionnaire.html', {'form': form})
-
-#def thank_you(request):
-#    return render(request, 'volunteers/thank_you.html')
-
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-
 from .forms import VolunteerProfileForm
+from .models import Event  # make sure Event is imported
 
 
 @csrf_exempt   # temporary — remove later when frontend handles CSRF
@@ -35,9 +19,28 @@ def questionnaire(request):
 
     if form.is_valid():
         profile = form.save()
+
+        # Get recommended events based on volunteer interests
+        interests = profile.areas_of_interest  # this is a list
+        recommended_events = Event.objects.filter(category__in=interests).order_by('date')[:5]  # top 5 upcoming events
+
+        # Serialize events to JSON-friendly format
+        events_list = [
+            {
+                "id": event.id,
+                "name": event.name,
+                "date": event.date.isoformat(),
+                "location": event.location,
+                "description": event.description,
+                "category": event.category
+            }
+            for event in recommended_events
+        ]
+
         return JsonResponse({
             "status": "success",
-            "id": profile.id
+            "id": profile.id,
+            "recommended_events": events_list
         }, status=201)
 
     return JsonResponse({

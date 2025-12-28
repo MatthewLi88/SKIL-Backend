@@ -47,3 +47,9 @@ def questionnaire(request):
         "status": "error",
         "errors": form.errors
     }, status=400)
+
+from django.shortcuts import render
+
+def thank_you(request):
+    return render(request, 'volunteers/thank_you.html')
+

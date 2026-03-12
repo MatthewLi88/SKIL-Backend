@@ -1,55 +1,258 @@
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-from .forms import VolunteerProfileForm
-from .models import Event  # make sure Event is imported
+from rest_framework import viewsets, generics, status, permissions
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+from .models import VolunteerProfile, Event, EventSignup
+from .serializers import (
+    UserSerializer, RegisterSerializer, VolunteerProfileSerializer,
+    UpdateUserSerializer, ChangePasswordSerializer,
+    QuestionnaireSerializer, EventSerializer, EventListSerializer,
+    EventSignupSerializer, MySignupSerializer
+)
+from .categories import get_categories_dict
+from decimal import Decimal
 
 
-@csrf_exempt   # temporary — remove later when frontend handles CSRF
-def questionnaire(request):
-    if request.method != 'POST':
-        return JsonResponse({"error": "Only POST allowed"}, status=405)
+def complete_past_signups(profile):
+    """Auto-complete signups for events that have passed and log hours."""
+    now = timezone.now()
+    past_signups = profile.signups.filter(
+        status='signed_up',
+        event__date__lt=now,
+    ).select_related('event')
 
-    try:
-        data = json.loads(request.body.decode('utf-8'))
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    for signup in past_signups:
+        event = signup.event
+        # Calculate hours from event duration
+        if event.end_time:
+            duration = event.end_time - event.date
+            hours = Decimal(str(duration.total_seconds() / 3600))
+        else:
+            # Default to 1 hour if no end time set
+            hours = Decimal('1')
 
-    form = VolunteerProfileForm(data)
+        signup.hours_logged = hours.quantize(Decimal('0.01'))
+        signup.status = 'completed'
+        signup.save()
 
-    if form.is_valid():
-        profile = form.save()
 
-        # Get recommended events based on volunteer interests
-        interests = profile.areas_of_interest  # this is a list
-        recommended_events = Event.objects.filter(category__in=interests).order_by('date')[:5]  # top 5 upcoming events
+class RegisterView(generics.CreateAPIView):
+    """Register a new user."""
+    queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny]
+    serializer_class = RegisterSerializer
 
-        # Serialize events to JSON-friendly format
-        events_list = [
-            {
-                "id": event.id,
-                "name": event.name,
-                "date": event.date.isoformat(),
-                "location": event.location,
-                "description": event.description,
-                "category": event.category
-            }
-            for event in recommended_events
-        ]
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
 
-        return JsonResponse({
-            "status": "success",
-            "id": profile.id,
-            "recommended_events": events_list
-        }, status=201)
+        # Generate tokens for immediate login
+        refresh = RefreshToken.for_user(user)
 
-    return JsonResponse({
-        "status": "error",
-        "errors": form.errors
-    }, status=400)
+        return Response({
+            'user': UserSerializer(user).data,
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            },
+            'message': 'Registration successful'
+        }, status=status.HTTP_201_CREATED)
 
-from django.shortcuts import render
 
-def thank_you(request):
-    return render(request, 'volunteers/thank_you.html')
+class ProfileView(generics.RetrieveUpdateAPIView):
+    """Get or update the current user's profile."""
+    serializer_class = VolunteerProfileSerializer
 
+    def get_object(self):
+        profile, _ = VolunteerProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+
+class UpdateUserView(generics.UpdateAPIView):
+    """Update the current user's account details (username, email, names)."""
+    serializer_class = UpdateUserSerializer
+
+    def get_object(self):
+        return self.request.user
+
+
+class ChangePasswordView(APIView):
+    """Change the current user's password."""
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+
+        return Response({'message': 'Password changed successfully'})
+
+
+class QuestionnaireView(APIView):
+    """Submit questionnaire and get matched events."""
+
+    def post(self, request):
+        serializer = QuestionnaireSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Update profile
+        profile, _ = VolunteerProfile.objects.get_or_create(user=request.user)
+        profile.areas_of_interest = serializer.validated_data['areas_of_interest']
+        profile.phone_number = serializer.validated_data.get('phone_number', '')
+        profile.questionnaire_completed = True
+        profile.save()
+
+        # Get recommended events
+        recommended = Event.objects.filter(
+            category__in=profile.areas_of_interest,
+            status='published',
+            date__gte=timezone.now()
+        ).order_by('date')[:10]
+
+        return Response({
+            'message': 'Questionnaire submitted successfully',
+            'profile': VolunteerProfileSerializer(profile, context={'request': request}).data,
+            'recommended_events': EventListSerializer(recommended, many=True).data
+        })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def categories_list(request):
+    """Get available interest categories."""
+    return Response(get_categories_dict())
+
+
+class EventViewSet(viewsets.ReadOnlyModelViewSet):
+    """View events. List shows published upcoming events."""
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        queryset = Event.objects.filter(status='published')
+
+        # Filter by category
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category=category)
+
+        # Filter upcoming only (default)
+        show_past = self.request.query_params.get('show_past', 'false').lower() == 'true'
+        if not show_past:
+            queryset = queryset.filter(date__gte=timezone.now())
+
+        return queryset.order_by('date')
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return EventListSerializer
+        return EventSerializer
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    @action(detail=False, methods=['get'])
+    def recommended(self, request):
+        """Get events matching user's interests."""
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': 'Authentication required'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        try:
+            profile = request.user.volunteer_profile
+        except VolunteerProfile.DoesNotExist:
+            return Response(
+                {'error': 'Please complete your profile first'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not profile.areas_of_interest:
+            return Response(
+                {'error': 'Please complete the questionnaire first'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        events = Event.objects.filter(
+            category__in=profile.areas_of_interest,
+            status='published',
+            date__gte=timezone.now()
+        ).order_by('date')[:10]
+
+        serializer = EventListSerializer(events, many=True)
+        return Response(serializer.data)
+
+
+class SignupViewSet(viewsets.ModelViewSet):
+    """Manage event signups."""
+    serializer_class = EventSignupSerializer
+
+    def get_queryset(self):
+        # Auto-complete past signups before returning
+        try:
+            profile = self.request.user.volunteer_profile
+            complete_past_signups(profile)
+        except VolunteerProfile.DoesNotExist:
+            pass
+        return EventSignup.objects.filter(
+            volunteer__user=self.request.user
+        ).select_related('event')
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return MySignupSerializer
+        return EventSignupSerializer
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """Cancel a signup."""
+        signup = self.get_object()
+        if signup.status in ['completed', 'no_show']:
+            return Response(
+                {'error': 'Cannot cancel a completed signup'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        signup.status = 'cancelled'
+        signup.save()
+        return Response({'message': 'Signup cancelled'})
+
+
+class MyStatsView(APIView):
+    """Get volunteer statistics."""
+
+    def get(self, request):
+        try:
+            profile = request.user.volunteer_profile
+        except VolunteerProfile.DoesNotExist:
+            return Response({
+                'total_hours': 0,
+                'events_attended': 0,
+                'upcoming_events': 0,
+            })
+
+        # Auto-complete past signups before calculating stats
+        complete_past_signups(profile)
+
+        signups = profile.signups.all()
+
+        return Response({
+            'total_hours': float(profile.total_hours),
+            'events_attended': signups.filter(status__in=['attended', 'completed']).count(),
+            'upcoming_events': signups.filter(
+                status='signed_up',
+                event__date__gte=timezone.now()
+            ).count(),
+            'events_signed_up': signups.exclude(status='cancelled').count(),
+        })

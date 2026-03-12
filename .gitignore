@@ -1,21 +1,45 @@
-# Environment variables
-.env
-
 # Python
 __pycache__/
 *.py[cod]
-*.pyo
+*$py.class
+*.so
+.Python
 venv/
+env/
 .venv/
 
 # Django
-db.sqlite3
-staticfiles/
 *.log
+local_settings.py
+db.sqlite3
+*.pot
+*.pyc
+.static/
+staticfiles/
+media/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Node/React
+node_modules/
+dist/
+build/
+*.local
 
 # macOS
 .DS_Store
 
-# IDE
-.vscode/
-.idea/
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

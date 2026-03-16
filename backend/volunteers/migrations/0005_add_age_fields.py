@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
@@ -8,14 +8,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='volunteerprofile',
-            name='age',
-            field=models.PositiveIntegerField(blank=True, null=True),
+        migrations.RunSQL(
+            sql="ALTER TABLE volunteers_volunteerprofile ADD COLUMN IF NOT EXISTS age integer NULL;",
+            reverse_sql="ALTER TABLE volunteers_volunteerprofile DROP COLUMN IF EXISTS age;",
         ),
-        migrations.AddField(
-            model_name='event',
-            name='min_age',
-            field=models.PositiveIntegerField(blank=True, null=True, help_text='Minimum volunteer age (optional)'),
+        migrations.RunSQL(
+            sql="ALTER TABLE volunteers_event ADD COLUMN IF NOT EXISTS min_age integer NULL;",
+            reverse_sql="ALTER TABLE volunteers_event DROP COLUMN IF EXISTS min_age;",
         ),
     ]

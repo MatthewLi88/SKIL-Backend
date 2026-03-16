@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import viewsets, generics, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -108,6 +109,7 @@ class QuestionnaireView(APIView):
         profile, _ = VolunteerProfile.objects.get_or_create(user=request.user)
         profile.areas_of_interest = serializer.validated_data['areas_of_interest']
         profile.phone_number = serializer.validated_data.get('phone_number', '')
+        profile.age = serializer.validated_data.get('age')
         profile.questionnaire_completed = True
         profile.save()
 
@@ -116,7 +118,10 @@ class QuestionnaireView(APIView):
             category__in=profile.areas_of_interest,
             status='published',
             date__gte=timezone.now()
-        ).order_by('date')[:10]
+        )
+        if profile.age is not None:
+            recommended = recommended.filter(Q(min_age__isnull=True) | Q(min_age__lte=profile.age))
+        recommended = recommended.order_by('date')[:10]
 
         return Response({
             'message': 'Questionnaire submitted successfully',
@@ -186,7 +191,10 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
             category__in=profile.areas_of_interest,
             status='published',
             date__gte=timezone.now()
-        ).order_by('date')[:10]
+        )
+        if profile.age is not None:
+            events = events.filter(Q(min_age__isnull=True) | Q(min_age__lte=profile.age))
+        events = events.order_by('date')[:10]
 
         serializer = EventListSerializer(events, many=True)
         return Response(serializer.data)

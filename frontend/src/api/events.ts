@@ -42,6 +42,7 @@ export async function getMyStats(): Promise<VolunteerStats> {
 interface QuestionnaireData {
   areas_of_interest: string[];
   phone_number?: string;
+  age?: number | null;
 }
 
 interface QuestionnaireResponse {

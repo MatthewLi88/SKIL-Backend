@@ -22,6 +22,7 @@ export function EventCard({ event }: EventCardProps) {
       <div className="event-card-header">
         <span className="event-category">{event.category}</span>
         {event.is_full && <span className="event-full-badge">Full</span>}
+        {event.min_age && <span className="event-age-badge">Ages {event.min_age}+</span>}
       </div>
       <h3 className="event-title">{event.name}</h3>
       <div className="event-details">

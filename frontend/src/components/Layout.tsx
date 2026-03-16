@@ -46,7 +46,7 @@ export function Layout({ children }: LayoutProps) {
       </header>
       <main className="main">{children}</main>
       <footer className="footer">
-        <p>Southlake Circle - Connecting volunteers with opportunities</p>
+        <p>Southlake Circle - Change moves in Circles</p>
       </footer>
     </div>
   );

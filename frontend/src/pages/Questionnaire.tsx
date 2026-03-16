@@ -8,6 +8,7 @@ export function Questionnaire() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [age, setAge] = useState<number | undefined>(undefined);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -48,6 +49,7 @@ export function Questionnaire() {
       await submitQuestionnaire({
         areas_of_interest: selectedInterests,
         phone_number: phoneNumber,
+        age: age ?? null,
       });
       await refreshProfile();
       navigate('/dashboard');
@@ -93,6 +95,19 @@ export function Questionnaire() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="(555) 555-5555"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="age">Age (optional)</label>
+            <input
+              type="number"
+              id="age"
+              value={age ?? ''}
+              onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : undefined)}
+              placeholder="Your age"
+              min={0}
+              max={120}
             />
           </div>
 

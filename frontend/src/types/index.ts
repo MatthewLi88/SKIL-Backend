@@ -32,6 +32,7 @@ export interface VolunteerProfile {
   id: number;
   user: User;
   phone_number: string;
+  age?: number | null;
   areas_of_interest: string[];
   questionnaire_completed: boolean;
   total_hours: number;
@@ -57,6 +58,7 @@ export interface Event {
   location: string;
   address?: string;
   max_volunteers: number;
+  min_age?: number | null;
   organization_name: string;
   contact_email?: string;
   status: 'draft' | 'published' | 'cancelled' | 'completed';
@@ -77,6 +79,7 @@ export interface EventListItem {
   spots_remaining: number | null;
   is_full: boolean;
   status: string;
+  min_age?: number | null;
 }
 
 // Signup types

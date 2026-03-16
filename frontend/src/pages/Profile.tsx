@@ -1,12 +1,12 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { updateUser, changePassword } from '../api/auth';
+import { updateUser, changePassword, updateProfile } from '../api/auth';
 import { getMySignups } from '../api/events';
 import type { EventSignup } from '../types';
 
 export function Profile() {
-  const { user, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
 
   // Account info form state
   const [username, setUsername] = useState('');
@@ -23,17 +23,31 @@ export function Profile() {
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
 
+  // Volunteer preferences state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [age, setAge] = useState<number | undefined>(undefined);
+  const [prefsError, setPrefsError] = useState('');
+  const [prefsSuccess, setPrefsSuccess] = useState('');
+  const [prefsLoading, setPrefsLoading] = useState(false);
+
   // Events state
   const [signups, setSignups] = useState<EventSignup[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
 
-  // Populate form fields from current user data
+  // Populate form fields from current user/profile data
   useEffect(() => {
     if (user) {
       setUsername(user.username);
       setEmail(user.email);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (profile) {
+      setPhoneNumber(profile.phone_number || '');
+      setAge(profile.age ?? undefined);
+    }
+  }, [profile]);
 
   // Load signups on mount
   useEffect(() => {
@@ -64,6 +78,23 @@ export function Profile() {
       setAccountError(err instanceof Error ? err.message : 'Failed to update account');
     } finally {
       setAccountLoading(false);
+    }
+  };
+
+  // Handle volunteer preferences update
+  const handlePrefsSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setPrefsError('');
+    setPrefsSuccess('');
+    setPrefsLoading(true);
+    try {
+      await updateProfile({ phone_number: phoneNumber, age: age ?? null });
+      await refreshProfile();
+      setPrefsSuccess('Preferences updated successfully');
+    } catch (err) {
+      setPrefsError(err instanceof Error ? err.message : 'Failed to update preferences');
+    } finally {
+      setPrefsLoading(false);
     }
   };
 
@@ -158,6 +189,47 @@ export function Profile() {
         </form>
       </section>
 
+      {/* Volunteer Preferences */}
+      <section className="profile-section">
+        <h2>Volunteer Preferences</h2>
+        {prefsError && <div className="error-message">{prefsError}</div>}
+        {prefsSuccess && <div className="success-message">{prefsSuccess}</div>}
+        <form onSubmit={handlePrefsSubmit}>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="phoneNumber">Phone Number (optional)</label>
+              <input
+                type="tel"
+                id="phoneNumber"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="(555) 555-5555"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="age">Age (optional)</label>
+              <input
+                type="number"
+                id="age"
+                value={age ?? ''}
+                onChange={(e) => setAge(e.target.value ? parseInt(e.target.value) : undefined)}
+                placeholder="Your age"
+                min={0}
+                max={120}
+              />
+            </div>
+          </div>
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={prefsLoading}>
+              {prefsLoading ? 'Saving...' : 'Save Preferences'}
+            </button>
+            <Link to="/questionnaire" className="btn btn-secondary">
+              Retake Questionnaire
+            </Link>
+          </div>
+        </form>
+      </section>
+
       {/* Change Password */}
       <section className="profile-section">
         <h2>Change Password</h2>
@@ -232,7 +304,7 @@ export function Profile() {
                         <p className="event-location">{signup.event.location}</p>
                       </div>
                       <span className="signup-status">
-                        {signup.status.replace('_', ' ')}
+                        {signup.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                       </span>
                     </div>
                   ))}
@@ -255,7 +327,7 @@ export function Profile() {
                         <p className="event-location">{signup.event.location}</p>
                       </div>
                       <span className="signup-status">
-                        {signup.status.replace('_', ' ')}
+                        {signup.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                       </span>
                     </div>
                   ))}

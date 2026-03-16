@@ -86,7 +86,9 @@ export function Dashboard() {
               <div key={signup.id} className="event-card">
                 <div className="event-card-header">
                   <span className="event-category">{signup.event.category}</span>
-                  <span className="signup-status">{signup.status}</span>
+                  <span className="signup-status">
+                    {signup.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                  </span>
                 </div>
                 <h3 className="event-title">{signup.event.name}</h3>
                 <div className="event-details">

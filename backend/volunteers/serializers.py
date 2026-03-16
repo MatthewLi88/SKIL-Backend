@@ -64,7 +64,7 @@ class VolunteerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = VolunteerProfile
         fields = [
-            'id', 'user', 'phone_number', 'areas_of_interest',
+            'id', 'user', 'phone_number', 'age', 'areas_of_interest',
             'questionnaire_completed', 'total_hours', 'events_count',
             'created_at', 'updated_at'
         ]
@@ -141,6 +141,7 @@ class QuestionnaireSerializer(serializers.Serializer):
         help_text="List of interest category keys"
     )
     phone_number = serializers.CharField(required=False, allow_blank=True)
+    age = serializers.IntegerField(required=False, allow_null=True, min_value=0, max_value=120)
 
     def validate_areas_of_interest(self, value):
         valid_keys = get_category_keys()
@@ -161,7 +162,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             'id', 'name', 'description', 'category', 'date', 'end_time',
-            'location', 'address', 'max_volunteers', 'organization_name',
+            'location', 'address', 'max_volunteers', 'min_age', 'organization_name',
             'contact_email', 'status', 'spots_remaining', 'is_full',
             'is_signed_up', 'signup_status', 'created_at'
         ]
@@ -198,7 +199,7 @@ class EventListSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             'id', 'name', 'category', 'date', 'location',
-            'organization_name', 'spots_remaining', 'is_full', 'status'
+            'organization_name', 'spots_remaining', 'is_full', 'status', 'min_age'
         ]
 
 

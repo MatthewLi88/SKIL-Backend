@@ -58,7 +58,7 @@ export function Events() {
           className="search-input"
         />
         <input
-          type="date"
+          type="month"
           value={searchDate}
           onChange={(e) => setSearchDate(e.target.value)}
           className="search-input"

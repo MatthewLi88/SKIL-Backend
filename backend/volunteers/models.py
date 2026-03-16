@@ -17,6 +17,9 @@ class VolunteerProfile(models.Model):
     # Questionnaire responses - stores list of category keys like ['environment', 'food']
     areas_of_interest = models.JSONField(default=list, blank=True)
 
+    # Volunteer info
+    age = models.PositiveIntegerField(null=True, blank=True)
+
     # Profile completion tracking
     questionnaire_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -62,6 +65,7 @@ class Event(models.Model):
 
     # Capacity
     max_volunteers = models.PositiveIntegerField(default=0, help_text="0 = unlimited")
+    min_age = models.PositiveIntegerField(null=True, blank=True, help_text="Minimum volunteer age (optional)")
 
     # Organization info
     organization_name = models.CharField(max_length=200, blank=True)

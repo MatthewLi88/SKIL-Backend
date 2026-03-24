@@ -1,28 +1,33 @@
 import logging
 import threading
-from django.conf import settings
+import os
 
 logger = logging.getLogger(__name__)
 
 
-def _send_in_background(subject, message, recipient):
-    """Fire-and-forget email in a daemon thread so the HTTP response isn't blocked."""
+def _send_in_background(subject, text, to):
+    """Fire-and-forget email via Resend's HTTPS API (works on Render free tier)."""
     def _send():
         try:
-            from django.core.mail import send_mail
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[recipient],
-                fail_silently=False,
-            )
-            logger.info("Email sent to %s: %s", recipient, subject)
-        except Exception as e:
-            logger.error("Email failed to %s: %s", recipient, e)
+            import resend
+            resend.api_key = os.environ.get('RESEND_API_KEY', '')
+            if not resend.api_key:
+                logger.error("Email not sent: RESEND_API_KEY env var is missing")
+                return
 
-    t = threading.Thread(target=_send, daemon=True)
-    t.start()
+            from_addr = os.environ.get('DEFAULT_FROM_EMAIL', 'Southlake Circle <onboarding@resend.dev>')
+
+            resend.Emails.send({
+                'from': from_addr,
+                'to': [to],
+                'subject': subject,
+                'text': text,
+            })
+            logger.info("Email sent to %s: %s", to, subject)
+        except Exception as e:
+            logger.error("Email failed to %s: %s", to, e)
+
+    threading.Thread(target=_send, daemon=True).start()
 
 
 def _fmt_date(dt):
@@ -47,25 +52,15 @@ def send_signup_confirmation(signup):
     ]
     if event.end_time:
         lines.append(f"  Ends:     {_fmt_date(event.end_time)}")
-    lines += [
-        f"  Location: {event.location}",
-    ]
+    lines += [f"  Location: {event.location}"]
     if event.address:
         lines.append(f"  Address:  {event.address}")
-    lines += [
-        "",
-        event.description,
-        "",
-    ]
+    lines += ["", event.description, ""]
     if event.contact_email:
         lines.append(f"Questions? Reach the organizer at {event.contact_email}")
     if event.organization_website:
         lines.append(f"Learn more: {event.organization_website}")
-    lines += [
-        "",
-        "Thank you for volunteering!",
-        "— The Southlake Circle Team",
-    ]
+    lines += ["", "Thank you for volunteering!", "— The Southlake Circle Team"]
 
     _send_in_background(f"You're signed up: {event.name}", "\n".join(lines), user.email)
 

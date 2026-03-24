@@ -1,5 +1,8 @@
+import logging
 import threading
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 def _send_in_background(subject, message, recipient):
@@ -12,10 +15,14 @@ def _send_in_background(subject, message, recipient):
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[recipient],
-                fail_silently=True,
+                fail_silently=False,
             )
-        except Exception:
-            pass
+            logger.info("Email sent to %s: %s", recipient, subject)
+        except Exception as e:
+            logger.error("Email failed to %s: %s", recipient, e)
+
+    t = threading.Thread(target=_send, daemon=True)
+    t.start()
 
     t = threading.Thread(target=_send, daemon=True)
     t.start()

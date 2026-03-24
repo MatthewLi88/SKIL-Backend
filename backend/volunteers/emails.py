@@ -1,5 +1,24 @@
-from django.core.mail import send_mail
+import threading
 from django.conf import settings
+
+
+def _send_in_background(subject, message, recipient):
+    """Fire-and-forget email in a daemon thread so the HTTP response isn't blocked."""
+    def _send():
+        try:
+            from django.core.mail import send_mail
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[recipient],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+    t = threading.Thread(target=_send, daemon=True)
+    t.start()
 
 
 def _fmt_date(dt):
@@ -44,13 +63,7 @@ def send_signup_confirmation(signup):
         "— The Southlake Circle Team",
     ]
 
-    send_mail(
-        subject=f"You're signed up: {event.name}",
-        message="\n".join(lines),
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=True,
-    )
+    _send_in_background(f"You're signed up: {event.name}", "\n".join(lines), user.email)
 
 
 def send_org_signup_notification(signup):
@@ -84,10 +97,4 @@ def send_org_signup_notification(signup):
         "— The Southlake Circle Team",
     ]
 
-    send_mail(
-        subject=f"New signup for {event.name}: {full_name}",
-        message="\n".join(lines),
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[recipient],
-        fail_silently=True,
-    )
+    _send_in_background(f"New signup for {event.name}: {full_name}", "\n".join(lines), recipient)

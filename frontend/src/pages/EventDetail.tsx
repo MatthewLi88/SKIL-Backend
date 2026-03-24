@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import { getEvent, signUpForEvent, cancelSignup, getMySignups } from '../api/events';
 import type { Event, EventSignup } from '../types';
@@ -58,6 +59,7 @@ export function EventDetail() {
       const newSignup = await signUpForEvent(event.id);
       setSignup(newSignup);
       setSuccessMessage('Successfully signed up!');
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
 
       // Refresh event data so spots_remaining updates
       const updatedEvent = await getEvent(event.id);

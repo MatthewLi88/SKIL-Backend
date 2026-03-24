@@ -24,9 +24,6 @@ def _send_in_background(subject, message, recipient):
     t = threading.Thread(target=_send, daemon=True)
     t.start()
 
-    t = threading.Thread(target=_send, daemon=True)
-    t.start()
-
 
 def _fmt_date(dt):
     return dt.strftime('%A, %B %d, %Y at %I:%M %p')

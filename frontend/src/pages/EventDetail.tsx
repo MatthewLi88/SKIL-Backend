@@ -153,10 +153,17 @@ export function EventDetail() {
               <p>{event.description}</p>
             </section>
 
-            {event.contact_email && (
+            {(event.contact_email || event.organization_website) && (
               <section className="info-section">
                 <h3>Contact</h3>
-                <p>{event.contact_email}</p>
+                {event.contact_email && <p>{event.contact_email}</p>}
+                {event.organization_website && (
+                  <p>
+                    <a href={event.organization_website} target="_blank" rel="noopener noreferrer">
+                      {event.organization_website}
+                    </a>
+                  </p>
+                )}
               </section>
             )}
           </div>

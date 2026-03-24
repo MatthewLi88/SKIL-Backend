@@ -11,6 +11,7 @@ router.register(r'signups', views.SignupViewSet, basename='signup')
 urlpatterns = [
     # Authentication
     path('auth/register/', views.RegisterView.as_view(), name='register'),
+    path('auth/register/organization/', views.OrganizationRegistrationView.as_view(), name='register_organization'),
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 

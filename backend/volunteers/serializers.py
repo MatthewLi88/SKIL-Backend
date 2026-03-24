@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
-from .models import VolunteerProfile, Event, EventSignup
+from .models import VolunteerProfile, Event, EventSignup, Organization
 from .categories import get_category_keys
 
 
@@ -163,7 +163,7 @@ class EventSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'category', 'date', 'end_time',
             'location', 'address', 'max_volunteers', 'min_age', 'organization_name',
-            'contact_email', 'status', 'spots_remaining', 'is_full',
+            'organization_website', 'contact_email', 'status', 'spots_remaining', 'is_full',
             'is_signed_up', 'signup_status', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
@@ -190,6 +190,62 @@ class EventSerializer(serializers.ModelSerializer):
             return None
 
 
+class OrganizationSerializer(serializers.ModelSerializer):
+    """Serializer for organization registration and display."""
+    class Meta:
+        model = Organization
+        fields = ['id', 'name', 'description', 'website', 'contact_email', 'contact_phone', 'is_approved', 'created_at']
+        read_only_fields = ['id', 'is_approved', 'created_at']
+
+
+class OrganizationRegistrationSerializer(serializers.Serializer):
+    """Serializer for registering a new organization account."""
+    # User fields
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    password_confirm = serializers.CharField(write_only=True)
+
+    # Organization fields
+    org_name = serializers.CharField(max_length=200)
+    org_description = serializers.CharField(required=False, allow_blank=True)
+    org_website = serializers.URLField(required=False, allow_blank=True)
+    org_contact_email = serializers.EmailField(required=False, allow_blank=True)
+    org_contact_phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with this username already exists.")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return value
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({'password_confirm': "Passwords don't match."})
+        return attrs
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password'],
+        )
+        VolunteerProfile.objects.create(user=user)
+        org = Organization.objects.create(
+            user=user,
+            name=validated_data['org_name'],
+            description=validated_data.get('org_description', ''),
+            website=validated_data.get('org_website', ''),
+            contact_email=validated_data.get('org_contact_email', ''),
+            contact_phone=validated_data.get('org_contact_phone', ''),
+        )
+        return org
+
+
 class EventListSerializer(serializers.ModelSerializer):
     """Lighter serializer for event lists."""
     spots_remaining = serializers.IntegerField(read_only=True)
@@ -199,7 +255,7 @@ class EventListSerializer(serializers.ModelSerializer):
         model = Event
         fields = [
             'id', 'name', 'category', 'date', 'location',
-            'organization_name', 'spots_remaining', 'is_full', 'status', 'min_age'
+            'organization_name', 'organization_website', 'spots_remaining', 'is_full', 'status', 'min_age'
         ]
 
 

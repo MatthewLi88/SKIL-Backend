@@ -9,6 +9,7 @@ export function Events() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchName, setSearchName] = useState<string>('');
   const [searchDate, setSearchDate] = useState<string>('');
+  const [sortBy, setSortBy] = useState<'date' | 'organization'>('date');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -76,6 +77,15 @@ export function Events() {
             </option>
           ))}
         </select>
+        <label htmlFor="sort-by">Sort by:</label>
+        <select
+          id="sort-by"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'date' | 'organization')}
+        >
+          <option value="date">Date</option>
+          <option value="organization">Organization</option>
+        </select>
         {(searchName || searchDate || selectedCategory) && (
           <button
             className="btn btn-secondary"
@@ -91,11 +101,18 @@ export function Events() {
       {isLoading ? (
         <div className="loading">Loading events...</div>
       ) : (() => {
-        const filtered = events.filter((event) => {
-          const matchesName = !searchName || event.name.toLowerCase().includes(searchName.toLowerCase());
-          const matchesDate = !searchDate || event.date.startsWith(searchDate);
-          return matchesName && matchesDate;
-        });
+        const filtered = events
+          .filter((event) => {
+            const matchesName = !searchName || event.name.toLowerCase().includes(searchName.toLowerCase());
+            const matchesDate = !searchDate || event.date.startsWith(searchDate);
+            return matchesName && matchesDate;
+          })
+          .sort((a, b) => {
+            if (sortBy === 'organization') {
+              return (a.organization_name || '').localeCompare(b.organization_name || '');
+            }
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+          });
         return filtered.length > 0 ? (
           <div className="events-grid">
             {filtered.map((event) => (

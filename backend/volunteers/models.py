@@ -38,6 +38,32 @@ class VolunteerProfile(models.Model):
         )['total'] or 0
 
 
+class Organization(models.Model):
+    """
+    A volunteer organization that can host events.
+    """
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    website = models.URLField(blank=True)
+    contact_email = models.EmailField(blank=True)
+    contact_phone = models.CharField(max_length=20, blank=True)
+
+    # Linked user account (the org's admin account)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='organization'
+    )
+
+    is_approved = models.BooleanField(default=False, help_text="Admin must approve before org can post events")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Event(models.Model):
     """
     Volunteer opportunity/event that users can sign up for.
@@ -67,9 +93,17 @@ class Event(models.Model):
     max_volunteers = models.PositiveIntegerField(default=0, help_text="0 = unlimited")
     min_age = models.PositiveIntegerField(null=True, blank=True, help_text="Minimum volunteer age (optional)")
 
-    # Organization info
+    # Organization info (plain text for backwards compat; links to Organization if available)
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='events'
+    )
     organization_name = models.CharField(max_length=200, blank=True)
     contact_email = models.EmailField(blank=True)
+    organization_website = models.URLField(blank=True)
 
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='published')

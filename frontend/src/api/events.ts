@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Event, EventListItem, EventSignup, Category, VolunteerStats, VolunteerProfile } from '../types';
+import type { Event, EventListItem, EventSignup, Category, VolunteerStats, VolunteerProfile, Organization } from '../types';
 
 // Categories
 export async function getCategories(): Promise<Category[]> {
@@ -53,4 +53,27 @@ interface QuestionnaireResponse {
 
 export async function submitQuestionnaire(data: QuestionnaireData): Promise<QuestionnaireResponse> {
   return api.post<QuestionnaireResponse>('/questionnaire/', data);
+}
+
+// Organization registration
+interface OrgRegistrationData {
+  username: string;
+  email: string;
+  password: string;
+  password_confirm: string;
+  org_name: string;
+  org_description?: string;
+  org_website?: string;
+  org_contact_email?: string;
+  org_contact_phone?: string;
+}
+
+interface OrgRegistrationResponse {
+  organization: Organization;
+  tokens: { access: string; refresh: string };
+  message: string;
+}
+
+export async function registerOrganization(data: OrgRegistrationData): Promise<OrgRegistrationResponse> {
+  return api.post<OrgRegistrationResponse>('/auth/register/organization/', data, { skipAuth: true });
 }

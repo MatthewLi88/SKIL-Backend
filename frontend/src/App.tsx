@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { RegisterOrganization } from './pages/RegisterOrganization';
 import { Questionnaire } from './pages/Questionnaire';
 import { Dashboard } from './pages/Dashboard';
 import { Events } from './pages/Events';
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/register/organization" element={<RegisterOrganization />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
 

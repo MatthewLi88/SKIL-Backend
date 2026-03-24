@@ -141,6 +141,9 @@ export function Register() {
         <p className="auth-footer">
           Already have an account? <Link to="/login">Sign in</Link>
         </p>
+        <p className="auth-footer">
+          Representing an organization? <Link to="/register/organization">Register your organization</Link>
+        </p>
       </div>
     </div>
   );

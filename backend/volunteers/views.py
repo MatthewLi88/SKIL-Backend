@@ -7,12 +7,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from .models import VolunteerProfile, Event, EventSignup
+from .models import VolunteerProfile, Event, EventSignup, Organization
 from .serializers import (
     UserSerializer, RegisterSerializer, VolunteerProfileSerializer,
     UpdateUserSerializer, ChangePasswordSerializer,
     QuestionnaireSerializer, EventSerializer, EventListSerializer,
-    EventSignupSerializer, MySignupSerializer
+    EventSignupSerializer, MySignupSerializer,
+    OrganizationSerializer, OrganizationRegistrationSerializer
 )
 from .categories import get_categories_dict
 from decimal import Decimal
@@ -235,6 +236,29 @@ class SignupViewSet(viewsets.ModelViewSet):
         signup.status = 'cancelled'
         signup.save()
         return Response({'message': 'Signup cancelled'})
+
+
+class OrganizationRegistrationView(generics.CreateAPIView):
+    """Register a new organization account."""
+    permission_classes = [permissions.AllowAny]
+    serializer_class = OrganizationRegistrationSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        org = serializer.save()
+
+        from rest_framework_simplejwt.tokens import RefreshToken
+        refresh = RefreshToken.for_user(org.user)
+
+        return Response({
+            'organization': OrganizationSerializer(org).data,
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            },
+            'message': 'Organization registered successfully. An admin will review and approve your account.'
+        }, status=status.HTTP_201_CREATED)
 
 
 class MyStatsView(APIView):

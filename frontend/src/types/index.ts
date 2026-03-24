@@ -47,6 +47,18 @@ export interface Category {
   label: string;
 }
 
+// Organization type
+export interface Organization {
+  id: number;
+  name: string;
+  description: string;
+  website: string;
+  contact_email: string;
+  contact_phone: string;
+  is_approved: boolean;
+  created_at: string;
+}
+
 // Event types
 export interface Event {
   id: number;
@@ -60,6 +72,7 @@ export interface Event {
   max_volunteers: number;
   min_age?: number | null;
   organization_name: string;
+  organization_website?: string;
   contact_email?: string;
   status: 'draft' | 'published' | 'cancelled' | 'completed';
   spots_remaining: number | null;
@@ -76,6 +89,7 @@ export interface EventListItem {
   date: string;
   location: string;
   organization_name: string;
+  organization_website?: string;
   spots_remaining: number | null;
   is_full: boolean;
   status: string;

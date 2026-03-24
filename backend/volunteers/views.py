@@ -16,6 +16,7 @@ from .serializers import (
     OrganizationSerializer, OrganizationRegistrationSerializer
 )
 from .categories import get_categories_dict
+from .emails import send_signup_confirmation, send_org_signup_notification
 from decimal import Decimal
 
 
@@ -204,6 +205,22 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
 class SignupViewSet(viewsets.ModelViewSet):
     """Manage event signups."""
     serializer_class = EventSignupSerializer
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        # Send emails after a successful signup (status 201)
+        if response.status_code == status.HTTP_201_CREATED:
+            try:
+                signup_id = response.data.get('id')
+                from .models import EventSignup as ES
+                signup = ES.objects.select_related(
+                    'volunteer__user', 'event__organization__user'
+                ).get(pk=signup_id)
+                send_signup_confirmation(signup)
+                send_org_signup_notification(signup)
+            except Exception:
+                pass  # Never block the response due to email failure
+        return response
 
     def get_queryset(self):
         # Auto-complete past signups before returning

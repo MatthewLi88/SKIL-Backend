@@ -9,7 +9,7 @@ export function Events() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchName, setSearchName] = useState<string>('');
   const [searchDate, setSearchDate] = useState<string>('');
-  const [sortBy, setSortBy] = useState<'date' | 'organization'>('date');
+  const [selectedOrg, setSelectedOrg] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -77,19 +77,21 @@ export function Events() {
             </option>
           ))}
         </select>
-        <label htmlFor="sort-by">Sort by:</label>
+        <label htmlFor="org-filter">Organization:</label>
         <select
-          id="sort-by"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as 'date' | 'organization')}
+          id="org-filter"
+          value={selectedOrg}
+          onChange={(e) => setSelectedOrg(e.target.value)}
         >
-          <option value="date">Date</option>
-          <option value="organization">Organization</option>
+          <option value="">All Organizations</option>
+          {Array.from(new Set(events.map((e) => e.organization_name).filter(Boolean))).sort().map((name) => (
+            <option key={name} value={name}>{name}</option>
+          ))}
         </select>
-        {(searchName || searchDate || selectedCategory) && (
+        {(searchName || searchDate || selectedCategory || selectedOrg) && (
           <button
             className="btn btn-secondary"
-            onClick={() => { setSearchName(''); setSearchDate(''); setSelectedCategory(''); }}
+            onClick={() => { setSearchName(''); setSearchDate(''); setSelectedCategory(''); setSelectedOrg(''); }}
           >
             Clear
           </button>
@@ -101,18 +103,12 @@ export function Events() {
       {isLoading ? (
         <div className="loading">Loading events...</div>
       ) : (() => {
-        const filtered = events
-          .filter((event) => {
-            const matchesName = !searchName || event.name.toLowerCase().includes(searchName.toLowerCase());
-            const matchesDate = !searchDate || event.date.startsWith(searchDate);
-            return matchesName && matchesDate;
-          })
-          .sort((a, b) => {
-            if (sortBy === 'organization') {
-              return (a.organization_name || '').localeCompare(b.organization_name || '');
-            }
-            return new Date(a.date).getTime() - new Date(b.date).getTime();
-          });
+        const filtered = events.filter((event) => {
+          const matchesName = !searchName || event.name.toLowerCase().includes(searchName.toLowerCase());
+          const matchesDate = !searchDate || event.date.startsWith(searchDate);
+          const matchesOrg = !selectedOrg || event.organization_name === selectedOrg;
+          return matchesName && matchesDate && matchesOrg;
+        });
         return filtered.length > 0 ? (
           <div className="events-grid">
             {filtered.map((event) => (
@@ -122,7 +118,7 @@ export function Events() {
         ) : (
           <div className="no-events">
             <p>No events found matching your search.</p>
-            <button className="btn btn-secondary" onClick={() => { setSearchName(''); setSearchDate(''); setSelectedCategory(''); }}>
+            <button className="btn btn-secondary" onClick={() => { setSearchName(''); setSearchDate(''); setSelectedCategory(''); setSelectedOrg(''); }}>
               Clear Filters
             </button>
           </div>

@@ -58,6 +58,7 @@ class Organization(models.Model):
     )
 
     is_approved = models.BooleanField(default=False, help_text="Admin must approve before org can post events")
+    notify_on_signup = models.BooleanField(default=True, help_text="Email the org when a volunteer signs up for one of their events")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

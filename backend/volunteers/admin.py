@@ -39,6 +39,23 @@ class EventAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['-date']
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        # Org staff users only see their own events
+        return qs.filter(organization__user=request.user)
+
+    def save_model(self, request, obj, form, change):
+        if not change and not request.user.is_superuser:
+            # Auto-assign the org when creating a new event
+            try:
+                obj.organization = request.user.organization
+                obj.organization_name = obj.organization.name
+            except Organization.DoesNotExist:
+                pass
+        super().save_model(request, obj, form, change)
+
 
 class EventSignupInline(admin.TabularInline):
     model = EventSignup

@@ -233,7 +233,14 @@ class OrganizationRegistrationSerializer(serializers.Serializer):
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
+            is_staff=True,
         )
+        # Grant permission to manage events in admin
+        from django.contrib.auth.models import Permission
+        from django.contrib.contenttypes.models import ContentType
+        event_ct = ContentType.objects.get_for_model(Event)
+        for perm in Permission.objects.filter(content_type=event_ct):
+            user.user_permissions.add(perm)
         VolunteerProfile.objects.create(user=user)
         org = Organization.objects.create(
             user=user,

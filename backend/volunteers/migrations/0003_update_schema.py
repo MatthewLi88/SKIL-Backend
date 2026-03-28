@@ -31,11 +31,6 @@ class Migration(migrations.Migration):
         # Add missing VolunteerProfile fields
         migrations.AddField(
             model_name='volunteerprofile',
-            name='questionnaire_completed',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='volunteerprofile',
             name='created_at',
             field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
             preserve_default=False,

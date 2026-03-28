@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     """
 
     dependencies = [
-        ('volunteers', '0003_update_schema'),
+        ('volunteers', '0001_initial'),
     ]
 
     operations = [

@@ -1,3 +1,4 @@
+// Matthew Li
 /**
  * API client for communicating with the Django backend.
  * Handles authentication tokens and request/response formatting.

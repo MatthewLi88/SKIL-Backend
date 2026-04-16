@@ -1,7 +1,8 @@
+# Matthew Li
 from decimal import Decimal
 from django.contrib import admin
 from django.utils import timezone
-from .models import VolunteerProfile, Event, EventSignup, Organization
+from .models import VolunteerProfile, Event, EventSignup, Organization, ExternalRegistrationClick
 
 
 @admin.register(VolunteerProfile)
@@ -86,3 +87,11 @@ class OrganizationAdmin(admin.ModelAdmin):
         updated = queryset.update(is_approved=True)
         self.message_user(request, f"{updated} organization(s) approved.")
     approve_organizations.short_description = "Approve selected organizations"
+
+
+@admin.register(ExternalRegistrationClick)
+class ExternalRegistrationClickAdmin(admin.ModelAdmin):
+    list_display = ['event', 'user', 'clicked_at']
+    list_filter = ['clicked_at', 'event']
+    search_fields = ['event__name', 'user__username']
+    readonly_fields = ['event', 'user', 'clicked_at']

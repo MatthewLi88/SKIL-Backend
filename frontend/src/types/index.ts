@@ -1,3 +1,4 @@
+// Matthew Li
 // User types
 export interface User {
   id: number;
@@ -75,6 +76,8 @@ export interface Event {
   organization_website?: string;
   contact_email?: string;
   status: 'draft' | 'published' | 'cancelled' | 'completed';
+  registration_type: 'internal' | 'external';
+  external_url?: string | null;
   spots_remaining: number | null;
   is_full: boolean;
   is_signed_up?: boolean;

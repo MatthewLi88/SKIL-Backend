@@ -1,3 +1,4 @@
+# Matthew Li
 """
 Management command to load sample events data.
 Usage: python manage.py load_sample_data

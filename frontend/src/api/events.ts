@@ -1,3 +1,4 @@
+// Matthew Li
 import { api } from './client';
 import type { Event, EventListItem, EventSignup, Category, VolunteerStats, VolunteerProfile, Organization } from '../types';
 
@@ -31,6 +32,10 @@ export async function signUpForEvent(eventId: number): Promise<EventSignup> {
 
 export async function cancelSignup(signupId: number): Promise<void> {
   return api.post<void>(`/signups/${signupId}/cancel/`);
+}
+
+export async function trackExternalClick(eventId: number): Promise<void> {
+  return api.post<void>(`/events/${eventId}/track-click/`);
 }
 
 // Stats

@@ -1,8 +1,9 @@
+// Matthew Li
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
-import { getEvent, signUpForEvent, cancelSignup, getMySignups } from '../api/events';
+import { getEvent, signUpForEvent, cancelSignup, getMySignups, trackExternalClick } from '../api/events';
 import type { Event, EventSignup } from '../types';
 
 export function EventDetail() {
@@ -90,6 +91,16 @@ export function EventDetail() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleExternalClick = async () => {
+    if (!event) return;
+    try {
+      await trackExternalClick(event.id);
+    } catch {
+      // Non-blocking — don't surface tracking errors to the user
+    }
+    window.open(event.external_url!, '_blank', 'noopener,noreferrer');
   };
 
   const formatDate = (dateString: string) => {
@@ -180,6 +191,13 @@ export function EventDetail() {
 
               {isPastEvent ? (
                 <p className="past-event">This event has already occurred</p>
+              ) : event.registration_type === 'external' ? (
+                <button
+                  className="btn btn-primary btn-block"
+                  onClick={handleExternalClick}
+                >
+                  Register on {event.organization_name || 'Organization'}'s Site
+                </button>
               ) : isSignedUp ? (
                 <>
                   <p className="signed-up-message">You're signed up!</p>

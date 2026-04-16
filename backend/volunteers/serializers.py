@@ -1,3 +1,4 @@
+# Matthew Li
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
@@ -163,8 +164,9 @@ class EventSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'category', 'date', 'end_time',
             'location', 'address', 'max_volunteers', 'min_age', 'organization_name',
-            'organization_website', 'contact_email', 'status', 'spots_remaining', 'is_full',
-            'is_signed_up', 'signup_status', 'created_at'
+            'organization_website', 'contact_email', 'status', 'registration_type',
+            'external_url', 'spots_remaining', 'is_full', 'is_signed_up', 'signup_status',
+            'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 

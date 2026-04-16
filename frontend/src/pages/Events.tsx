@@ -1,3 +1,4 @@
+// Matthew Li
 import { useState, useEffect } from 'react';
 import { getEvents, getCategories } from '../api/events';
 import { EventCard } from '../components/EventCard';

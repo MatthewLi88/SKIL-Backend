@@ -1,3 +1,4 @@
+# Matthew Li
 from django.db.models import Q
 from rest_framework import viewsets, generics, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
@@ -7,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from .models import VolunteerProfile, Event, EventSignup, Organization
+from .models import VolunteerProfile, Event, EventSignup, Organization, ExternalRegistrationClick
 from .serializers import (
     UserSerializer, RegisterSerializer, VolunteerProfileSerializer,
     UpdateUserSerializer, ChangePasswordSerializer,
@@ -200,6 +201,15 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = EventListSerializer(events, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], url_path='track-click', permission_classes=[permissions.AllowAny])
+    def track_click(self, request, pk=None):
+        event = self.get_object()
+        if event.registration_type != 'external':
+            return Response({'error': 'Not an external registration event.'}, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user if request.user.is_authenticated else None
+        ExternalRegistrationClick.objects.create(event=event, user=user)
+        return Response({'status': 'recorded'})
 
 
 class SignupViewSet(viewsets.ModelViewSet):

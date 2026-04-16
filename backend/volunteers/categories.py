@@ -1,3 +1,4 @@
+# Matthew Li
 """
 Configurable interest/category choices for volunteer matching.
 
@@ -22,6 +23,7 @@ INTEREST_CATEGORIES = [
     ('Senior Center', 'Senior Center'),
     ('Physical Wellness', 'Physical Wellness'),
     ('Town Square Events', 'Town Square Events'),
+    ('Animal Care', 'Animal Care'),
 ]
 
 # Convert to Django choices format

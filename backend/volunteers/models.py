@@ -1,5 +1,7 @@
+# Matthew Li
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from .categories import get_category_choices
 
@@ -78,6 +80,11 @@ class Event(models.Model):
         ('completed', 'Completed'),
     ]
 
+    REGISTRATION_TYPE_CHOICES = [
+        ('internal', 'Internal'),
+        ('external', 'External'),
+    ]
+
     name = models.CharField(max_length=200)
     description = models.TextField()
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
@@ -106,6 +113,10 @@ class Event(models.Model):
     contact_email = models.EmailField(blank=True)
     organization_website = models.URLField(blank=True)
 
+    # Registration
+    registration_type = models.CharField(max_length=20, choices=REGISTRATION_TYPE_CHOICES, default='internal')
+    external_url = models.URLField(null=True, blank=True)
+
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='published')
 
@@ -118,6 +129,10 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        if self.registration_type == 'external' and not self.external_url:
+            raise ValidationError({'external_url': 'External URL is required for external registration events.'})
 
     @property
     def spots_remaining(self):
@@ -182,3 +197,16 @@ class EventSignup(models.Model):
 
     def __str__(self):
         return f"{self.volunteer.user.username} - {self.event.name}"
+
+
+class ExternalRegistrationClick(models.Model):
+    """Tracks clicks on external registration links for events."""
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='external_clicks')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    clicked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-clicked_at']
+
+    def __str__(self):
+        return f"Click on '{self.event.name}' at {self.clicked_at}"

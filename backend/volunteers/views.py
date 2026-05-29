@@ -265,6 +265,25 @@ class SignupViewSet(viewsets.ModelViewSet):
         return Response({'message': 'Signup cancelled'})
 
 
+class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
+    """Public read-only listing of approved volunteer organizations.
+
+    Supports filter `?based=southlake|other` to filter by location.
+    """
+    serializer_class = OrganizationSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None
+
+    def get_queryset(self):
+        queryset = Organization.objects.filter(is_approved=True)
+        based = self.request.query_params.get('based')
+        if based == 'southlake':
+            queryset = queryset.filter(is_southlake_based=True)
+        elif based == 'other':
+            queryset = queryset.filter(is_southlake_based=False)
+        return queryset.order_by('name')
+
+
 class OrganizationRegistrationView(generics.CreateAPIView):
     """Register a new organization account."""
     permission_classes = [permissions.AllowAny]

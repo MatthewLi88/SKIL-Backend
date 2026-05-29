@@ -25,6 +25,7 @@ export function Layout({ children }: LayoutProps) {
           </Link>
           <nav className="nav">
             <Link to="/events">Events</Link>
+            <Link to="/organizations">Organizations</Link>
             {isLoggedIn ? (
               <>
                 <Link to="/dashboard">Dashboard</Link>

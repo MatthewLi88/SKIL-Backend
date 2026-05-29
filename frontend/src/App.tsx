@@ -11,6 +11,7 @@ import { Questionnaire } from './pages/Questionnaire';
 import { Dashboard } from './pages/Dashboard';
 import { Events } from './pages/Events';
 import { EventDetail } from './pages/EventDetail';
+import { Organizations } from './pages/Organizations';
 import { Profile } from './pages/Profile';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/register/organization" element={<RegisterOrganization />} />
             <Route path="/events" element={<Events />} />
             <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/organizations" element={<Organizations />} />
 
             {/* Protected routes */}
             <Route

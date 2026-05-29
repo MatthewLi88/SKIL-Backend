@@ -61,6 +61,7 @@ class Organization(models.Model):
 
     is_approved = models.BooleanField(default=False, help_text="Admin must approve before org can post events")
     notify_on_signup = models.BooleanField(default=True, help_text="Email the org when a volunteer signs up for one of their events")
+    is_southlake_based = models.BooleanField(default=True, help_text="Whether this organization is based in Southlake")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

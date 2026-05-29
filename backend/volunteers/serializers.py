@@ -196,7 +196,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     """Serializer for organization registration and display."""
     class Meta:
         model = Organization
-        fields = ['id', 'name', 'description', 'website', 'contact_email', 'contact_phone', 'is_approved', 'notify_on_signup', 'created_at']
+        fields = ['id', 'name', 'description', 'website', 'contact_email', 'contact_phone', 'is_approved', 'notify_on_signup', 'is_southlake_based', 'created_at']
         read_only_fields = ['id', 'is_approved', 'created_at']
 
 

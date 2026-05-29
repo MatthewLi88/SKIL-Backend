@@ -82,3 +82,11 @@ interface OrgRegistrationResponse {
 export async function registerOrganization(data: OrgRegistrationData): Promise<OrgRegistrationResponse> {
   return api.post<OrgRegistrationResponse>('/auth/register/organization/', data, { skipAuth: true });
 }
+
+// Organizations list
+export type OrgLocationFilter = 'all' | 'southlake' | 'other';
+
+export async function getOrganizations(based: OrgLocationFilter = 'all'): Promise<Organization[]> {
+  const params = based === 'all' ? '' : `?based=${based}`;
+  return api.get<Organization[]>(`/organizations/${params}`, { skipAuth: true });
+}

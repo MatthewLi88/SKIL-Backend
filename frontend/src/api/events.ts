@@ -71,6 +71,7 @@ interface OrgRegistrationData {
   org_website?: string;
   org_contact_email?: string;
   org_contact_phone?: string;
+  org_city?: string;
 }
 
 interface OrgRegistrationResponse {

@@ -56,6 +56,7 @@ export interface Organization {
   website: string;
   contact_email: string;
   contact_phone: string;
+  city: string;
   is_approved: boolean;
   is_southlake_based: boolean;
   created_at: string;

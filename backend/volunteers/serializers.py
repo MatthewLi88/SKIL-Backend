@@ -196,7 +196,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     """Serializer for organization registration and display."""
     class Meta:
         model = Organization
-        fields = ['id', 'name', 'description', 'website', 'contact_email', 'contact_phone', 'is_approved', 'notify_on_signup', 'is_southlake_based', 'created_at']
+        fields = ['id', 'name', 'description', 'website', 'contact_email', 'contact_phone', 'city', 'is_approved', 'notify_on_signup', 'is_southlake_based', 'created_at']
         read_only_fields = ['id', 'is_approved', 'created_at']
 
 
@@ -214,6 +214,7 @@ class OrganizationRegistrationSerializer(serializers.Serializer):
     org_website = serializers.URLField(required=False, allow_blank=True)
     org_contact_email = serializers.EmailField(required=False, allow_blank=True)
     org_contact_phone = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    org_city = serializers.CharField(required=False, allow_blank=True, max_length=100)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -244,6 +245,7 @@ class OrganizationRegistrationSerializer(serializers.Serializer):
         for perm in Permission.objects.filter(content_type=event_ct):
             user.user_permissions.add(perm)
         VolunteerProfile.objects.create(user=user)
+        city = validated_data.get('org_city', '').strip()
         org = Organization.objects.create(
             user=user,
             name=validated_data['org_name'],
@@ -251,6 +253,8 @@ class OrganizationRegistrationSerializer(serializers.Serializer):
             website=validated_data.get('org_website', ''),
             contact_email=validated_data.get('org_contact_email', ''),
             contact_phone=validated_data.get('org_contact_phone', ''),
+            city=city,
+            is_southlake_based=(city.lower() == 'southlake') if city else True,
         )
         return org
 

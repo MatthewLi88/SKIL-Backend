@@ -6,6 +6,7 @@ import type { Organization } from '../types';
 export function Organizations() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [filter, setFilter] = useState<OrgLocationFilter>('all');
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -16,6 +17,7 @@ export function Organizations() {
       try {
         const data = await getOrganizations(filter);
         setOrganizations(data);
+        setExpandedId(null);
       } catch (err) {
         setError('Failed to load organizations');
         console.error(err);
@@ -25,6 +27,15 @@ export function Organizations() {
     }
     loadOrganizations();
   }, [filter]);
+
+  const toggleExpand = (id: number) => {
+    setExpandedId((current) => (current === id ? null : id));
+  };
+
+  const locationLabel = (org: Organization) => {
+    if (org.city) return org.city;
+    return org.is_southlake_based ? 'Southlake' : 'Other location';
+  };
 
   return (
     <div className="organizations-page">
@@ -61,28 +72,69 @@ export function Organizations() {
         <div className="loading">Loading organizations...</div>
       ) : organizations.length > 0 ? (
         <div className="organizations-grid">
-          {organizations.map((org) => (
-            <article key={org.id} className="org-card">
-              <header className="org-card-header">
-                <h3>{org.name}</h3>
-                <span className={`org-location-tag ${org.is_southlake_based ? 'southlake' : 'other'}`}>
-                  {org.is_southlake_based ? 'Southlake-based' : 'Non-Southlake'}
-                </span>
-              </header>
-              {org.description && <p className="org-description">{org.description}</p>}
-              <div className="org-contact">
-                {org.website && (
-                  <p>
-                    <a href={org.website} target="_blank" rel="noopener noreferrer">
-                      {org.website}
-                    </a>
-                  </p>
+          {organizations.map((org) => {
+            const isExpanded = expandedId === org.id;
+            return (
+              <div
+                key={org.id}
+                className={`org-card${isExpanded ? ' org-card-expanded' : ''}`}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                onClick={() => toggleExpand(org.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleExpand(org.id);
+                  }
+                }}
+              >
+                <div className="org-card-header">
+                  <span className={`org-location-tag ${org.is_southlake_based ? 'southlake' : 'other'}`}>
+                    {locationLabel(org)}
+                  </span>
+                </div>
+                <h3 className="org-title">{org.name}</h3>
+                <p className="org-subtitle">Based in {locationLabel(org)}</p>
+
+                {isExpanded && (
+                  <div className="org-card-body">
+                    {org.description ? (
+                      <p className="org-description">{org.description}</p>
+                    ) : (
+                      <p className="org-description org-description-empty">
+                        No description provided.
+                      </p>
+                    )}
+                    {(org.website || org.contact_email || org.contact_phone) && (
+                      <div className="org-contact">
+                        {org.website && (
+                          <p>
+                            <a
+                              href={org.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {org.website}
+                            </a>
+                          </p>
+                        )}
+                        {org.contact_email && <p>{org.contact_email}</p>}
+                        {org.contact_phone && <p>{org.contact_phone}</p>}
+                      </div>
+                    )}
+                  </div>
                 )}
-                {org.contact_email && <p>{org.contact_email}</p>}
-                {org.contact_phone && <p>{org.contact_phone}</p>}
+
+                <div className="org-card-footer">
+                  <span className="org-expand-hint">
+                    {isExpanded ? 'Click to collapse' : 'Click to view description'}
+                  </span>
+                </div>
               </div>
-            </article>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="no-events">

@@ -49,6 +49,7 @@ class Organization(models.Model):
     website = models.URLField(blank=True)
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=20, blank=True)
+    city = models.CharField(max_length=100, blank=True, help_text="City the organization is located in")
 
     # Linked user account (the org's admin account)
     user = models.OneToOneField(

@@ -549,6 +549,103 @@ body {
   color: var(--text-secondary);
 }
 
+/* Organizations */
+.organizations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.org-card {
+  background: var(--surface);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  outline: none;
+}
+
+.org-card:hover,
+.org-card:focus-visible {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.org-card-expanded {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+
+.org-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.org-location-tag {
+  background: var(--background);
+  color: var(--primary-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.org-location-tag.other {
+  background: var(--background);
+  color: var(--text-secondary);
+}
+
+.org-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.org-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.org-card-body {
+  flex: 1;
+  margin-bottom: 1rem;
+  border-top: 1px solid var(--background);
+  padding-top: 0.75rem;
+}
+
+.org-description {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  white-space: pre-wrap;
+}
+
+.org-description-empty {
+  font-style: italic;
+}
+
+.org-contact p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.org-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.org-expand-hint {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 /* Event Detail */
 .event-detail-page {
   max-width: 900px;

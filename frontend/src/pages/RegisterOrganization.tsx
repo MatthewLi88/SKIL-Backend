@@ -15,6 +15,7 @@ export function RegisterOrganization() {
     org_website: '',
     org_contact_email: '',
     org_contact_phone: '',
+    org_city: '',
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -119,6 +120,18 @@ export function RegisterOrganization() {
               value={formData.org_website}
               onChange={handleChange}
               placeholder="https://yourorg.org"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="org_city">City Located</label>
+            <input
+              type="text"
+              id="org_city"
+              name="org_city"
+              value={formData.org_city}
+              onChange={handleChange}
+              placeholder="e.g. Southlake"
             />
           </div>
 

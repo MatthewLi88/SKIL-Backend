@@ -212,3 +212,16 @@ class ExternalRegistrationClick(models.Model):
 
     def __str__(self):
         return f"Click on '{self.event.name}' at {self.clicked_at}"
+
+
+class OrganizationClick(models.Model):
+    """Tracks clicks on an organization's outbound website link."""
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='link_clicks')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    clicked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-clicked_at']
+
+    def __str__(self):
+        return f"Click on '{self.organization.name}' at {self.clicked_at}"

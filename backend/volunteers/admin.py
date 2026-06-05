@@ -2,7 +2,7 @@
 from decimal import Decimal
 from django.contrib import admin
 from django.utils import timezone
-from .models import VolunteerProfile, Event, EventSignup, Organization, ExternalRegistrationClick
+from .models import VolunteerProfile, Event, EventSignup, Organization, ExternalRegistrationClick, OrganizationClick
 
 
 @admin.register(VolunteerProfile)
@@ -95,3 +95,11 @@ class ExternalRegistrationClickAdmin(admin.ModelAdmin):
     list_filter = ['clicked_at', 'event']
     search_fields = ['event__name', 'user__username']
     readonly_fields = ['event', 'user', 'clicked_at']
+
+
+@admin.register(OrganizationClick)
+class OrganizationClickAdmin(admin.ModelAdmin):
+    list_display = ['organization', 'user', 'clicked_at']
+    list_filter = ['clicked_at', 'organization']
+    search_fields = ['organization__name', 'user__username']
+    readonly_fields = ['organization', 'user', 'clicked_at']

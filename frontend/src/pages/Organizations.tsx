@@ -1,6 +1,6 @@
 // Matthew Li
 import { useState, useEffect } from 'react';
-import { getOrganizations, type OrgLocationFilter } from '../api/events';
+import { getOrganizations, trackOrganizationClick, type OrgLocationFilter } from '../api/events';
 import type { Organization } from '../types';
 
 export function Organizations() {
@@ -114,7 +114,11 @@ export function Organizations() {
                               href={org.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Non-blocking — don't surface tracking errors to the user
+                                trackOrganizationClick(org.id).catch(() => {});
+                              }}
                             >
                               {org.website}
                             </a>

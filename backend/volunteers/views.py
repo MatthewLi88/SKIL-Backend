@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from .models import VolunteerProfile, Event, EventSignup, Organization, ExternalRegistrationClick
+from .models import VolunteerProfile, Event, EventSignup, Organization, ExternalRegistrationClick, OrganizationClick
 from .serializers import (
     UserSerializer, RegisterSerializer, VolunteerProfileSerializer,
     UpdateUserSerializer, ChangePasswordSerializer,
@@ -282,6 +282,13 @@ class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
         elif based == 'other':
             queryset = queryset.filter(is_southlake_based=False)
         return queryset.order_by('name')
+
+    @action(detail=True, methods=['post'], url_path='track-click', permission_classes=[permissions.AllowAny])
+    def track_click(self, request, pk=None):
+        org = self.get_object()
+        user = request.user if request.user.is_authenticated else None
+        OrganizationClick.objects.create(organization=org, user=user)
+        return Response({'status': 'recorded'})
 
 
 class OrganizationRegistrationView(generics.CreateAPIView):

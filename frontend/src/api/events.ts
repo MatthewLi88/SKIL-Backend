@@ -91,3 +91,7 @@ export async function getOrganizations(based: OrgLocationFilter = 'all'): Promis
   const params = based === 'all' ? '' : `?based=${based}`;
   return api.get<Organization[]>(`/organizations/${params}`, { skipAuth: true });
 }
+
+export async function trackOrganizationClick(orgId: number): Promise<void> {
+  return api.post<void>(`/organizations/${orgId}/track-click/`);
+}

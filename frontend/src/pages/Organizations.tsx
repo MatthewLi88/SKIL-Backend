@@ -116,8 +116,10 @@ export function Organizations() {
                               rel="noopener noreferrer"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // Non-blocking — don't surface tracking errors to the user
-                                trackOrganizationClick(org.id).catch(() => {});
+                                // Non-blocking — log to console for debugging but don't surface to the user
+                                trackOrganizationClick(org.id).catch((err) => {
+                                  console.warn('Org click tracking failed:', err);
+                                });
                               }}
                             >
                               {org.website}
@@ -132,6 +134,11 @@ export function Organizations() {
                 )}
 
                 <div className="org-card-footer">
+                  {typeof org.click_count === 'number' && (
+                    <span className="org-click-count" title="Number of times a volunteer clicked through to this organization's site">
+                      {org.click_count} {org.click_count === 1 ? 'visit' : 'visits'}
+                    </span>
+                  )}
                   <span className="org-expand-hint">
                     {isExpanded ? 'Click to collapse' : 'Click to view description'}
                   </span>

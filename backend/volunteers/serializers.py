@@ -194,10 +194,12 @@ class EventSerializer(serializers.ModelSerializer):
 
 class OrganizationSerializer(serializers.ModelSerializer):
     """Serializer for organization registration and display."""
+    click_count = serializers.IntegerField(read_only=True, required=False)
+
     class Meta:
         model = Organization
-        fields = ['id', 'name', 'description', 'website', 'contact_email', 'contact_phone', 'city', 'is_approved', 'notify_on_signup', 'is_southlake_based', 'created_at']
-        read_only_fields = ['id', 'is_approved', 'created_at']
+        fields = ['id', 'name', 'description', 'website', 'contact_email', 'contact_phone', 'city', 'is_approved', 'notify_on_signup', 'is_southlake_based', 'click_count', 'created_at']
+        read_only_fields = ['id', 'is_approved', 'click_count', 'created_at']
 
 
 class OrganizationRegistrationSerializer(serializers.Serializer):

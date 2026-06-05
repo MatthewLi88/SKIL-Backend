@@ -636,14 +636,22 @@ body {
 
 .org-card-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.org-click-count {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .org-expand-hint {
   font-size: 0.8rem;
   color: var(--text-secondary);
   font-style: italic;
+  margin-left: auto;
 }
 
 /* Event Detail */

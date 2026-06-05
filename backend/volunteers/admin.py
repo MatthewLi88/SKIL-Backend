@@ -101,11 +101,19 @@ class EventSignupAdmin(admin.ModelAdmin):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ['name', 'city', 'contact_email', 'website', 'is_approved', 'is_southlake_based', 'notify_on_signup', 'created_at']
+    list_display = ['name', 'city', 'contact_email', 'website', 'is_approved', 'is_southlake_based', 'link_click_count', 'notify_on_signup', 'created_at']
     list_filter = ['is_approved', 'is_southlake_based', 'notify_on_signup', 'created_at']
     search_fields = ['name', 'city', 'contact_email', 'user__username']
     readonly_fields = ['created_at']
     actions = ['approve_organizations']
+
+    def get_queryset(self, request):
+        from django.db.models import Count
+        return super().get_queryset(request).annotate(_click_count=Count('link_clicks'))
+
+    @admin.display(description='Link clicks', ordering='_click_count')
+    def link_click_count(self, obj):
+        return getattr(obj, '_click_count', obj.link_clicks.count())
 
     def approve_organizations(self, request, queryset):
         updated = queryset.update(is_approved=True)

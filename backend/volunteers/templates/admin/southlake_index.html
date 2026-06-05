@@ -1,0 +1,39 @@
+{% extends "admin/index.html" %}
+{% load southlake_admin %}
+
+{% block content %}
+{% southlake_totals as totals %}
+<div class="module" style="margin-bottom: 20px; padding: 20px; background: #fff; border-left: 5px solid #79aec8; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+  <h2 style="margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: #666;">
+    Southlake Circle &mdash; Platform Totals
+  </h2>
+  <div style="display: flex; flex-wrap: wrap; gap: 32px;">
+    <div>
+      <div style="font-size: 13px; color: #888;">Total volunteer hours</div>
+      <div style="font-size: 32px; font-weight: 600; color: #205067;">
+        {{ totals.total_hours|floatformat:2 }}
+      </div>
+      <div style="font-size: 12px; color: #999;">
+        {{ totals.signup_hours|floatformat:2 }} from signups
+        {% if totals.adjustment_hours %}
+          &middot; {{ totals.adjustment_hours|floatformat:2 }} adjustments
+        {% endif %}
+      </div>
+    </div>
+    <div>
+      <div style="font-size: 13px; color: #888;">Volunteers</div>
+      <div style="font-size: 32px; font-weight: 600; color: #205067;">
+        {{ totals.volunteer_count }}
+      </div>
+    </div>
+    <div>
+      <div style="font-size: 13px; color: #888;">Completed signups</div>
+      <div style="font-size: 32px; font-weight: 600; color: #205067;">
+        {{ totals.completed_signup_count }}
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ block.super }}
+{% endblock %}

@@ -1,5 +1,5 @@
 # Matthew Li
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework import viewsets, generics, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -275,7 +275,9 @@ class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        queryset = Organization.objects.filter(is_approved=True)
+        queryset = Organization.objects.filter(is_approved=True).annotate(
+            click_count=Count('link_clicks'),
+        )
         based = self.request.query_params.get('based')
         if based == 'southlake':
             queryset = queryset.filter(is_southlake_based=True)

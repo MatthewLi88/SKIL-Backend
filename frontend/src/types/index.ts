@@ -59,6 +59,7 @@ export interface Organization {
   city: string;
   is_approved: boolean;
   is_southlake_based: boolean;
+  click_count?: number;
   created_at: string;
 }
 

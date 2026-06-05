@@ -7,10 +7,34 @@ from .models import VolunteerProfile, Event, EventSignup, Organization, External
 
 @admin.register(VolunteerProfile)
 class VolunteerProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'phone_number', 'questionnaire_completed', 'total_hours', 'created_at']
+    list_display = ['user', 'phone_number', 'questionnaire_completed', 'signup_hours_display', 'hours_adjustment', 'total_hours_display', 'created_at']
     list_filter = ['questionnaire_completed', 'created_at']
     search_fields = ['user__username', 'user__email', 'phone_number']
-    readonly_fields = ['total_hours', 'created_at', 'updated_at']
+    readonly_fields = ['signup_hours_display', 'total_hours_display', 'created_at', 'updated_at']
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'phone_number', 'age', 'areas_of_interest', 'questionnaire_completed'),
+        }),
+        ('Service hours', {
+            'fields': ('signup_hours_display', 'hours_adjustment', 'total_hours_display'),
+            'description': (
+                'Hours from completed signups are computed automatically. '
+                'Use "Hours adjustment" to manually credit or correct hours '
+                '(e.g. off-platform volunteering). It can be negative.'
+            ),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+        }),
+    )
+
+    @admin.display(description='Signup hours', ordering=None)
+    def signup_hours_display(self, obj):
+        return obj.signup_hours
+
+    @admin.display(description='Total hours', ordering=None)
+    def total_hours_display(self, obj):
+        return obj.total_hours
 
 
 def mark_signups_completed(modeladmin, request, queryset):

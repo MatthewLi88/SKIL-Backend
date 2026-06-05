@@ -22,6 +22,15 @@ class VolunteerProfile(models.Model):
     # Volunteer info
     age = models.PositiveIntegerField(null=True, blank=True)
 
+    # Manual admin adjustment to total hours (e.g. credit off-platform volunteering,
+    # apply corrections). Can be negative. Added to hours computed from signups.
+    hours_adjustment = models.DecimalField(
+        max_digits=7,
+        decimal_places=2,
+        default=0,
+        help_text="Admin-only manual adjustment added to total service hours. Can be negative.",
+    )
+
     # Profile completion tracking
     questionnaire_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -31,13 +40,19 @@ class VolunteerProfile(models.Model):
         return f"{self.user.username}'s profile"
 
     @property
-    def total_hours(self):
-        """Calculate total volunteer hours from completed signups."""
+    def signup_hours(self):
+        """Hours logged from completed event signups."""
+        from decimal import Decimal
         return self.signups.filter(
             status='completed'
         ).aggregate(
             total=models.Sum('hours_logged')
-        )['total'] or 0
+        )['total'] or Decimal('0')
+
+    @property
+    def total_hours(self):
+        """Total volunteer hours: completed signups + manual admin adjustment."""
+        return self.signup_hours + (self.hours_adjustment or 0)
 
 
 class Organization(models.Model):

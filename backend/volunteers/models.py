@@ -107,7 +107,12 @@ class Event(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
 
     # Scheduling
-    date = models.DateTimeField()
+    is_ongoing = models.BooleanField(
+        default=False,
+        help_text="Check for ongoing opportunities with no fixed date (volunteers can help anytime). "
+                  "Date and end time are not needed when this is checked.",
+    )
+    date = models.DateTimeField(null=True, blank=True, help_text="Required unless the event is ongoing.")
     end_time = models.DateTimeField(null=True, blank=True)
 
     # Location
@@ -142,14 +147,24 @@ class Event(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['date']
+        # Dated events first (soonest first), ongoing events after
+        ordering = [models.F('date').asc(nulls_last=True)]
 
     def __str__(self):
         return self.name
 
     def clean(self):
+        errors = {}
         if self.registration_type == 'external' and not self.external_url:
-            raise ValidationError({'external_url': 'External URL is required for external registration events.'})
+            errors['external_url'] = 'External URL is required for external registration events.'
+        if self.is_ongoing:
+            # Ongoing events have no schedule; drop any stray date/time
+            self.date = None
+            self.end_time = None
+        elif not self.date:
+            errors['date'] = 'Date is required unless "Is ongoing" is checked.'
+        if errors:
+            raise ValidationError(errors)
 
     @property
     def spots_remaining(self):

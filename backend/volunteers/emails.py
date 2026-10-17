@@ -35,6 +35,12 @@ def _fmt_date(dt):
     return dt.strftime('%A, %B %d, %Y at %I:%M %p')
 
 
+def _event_when(event):
+    if event.is_ongoing or not event.date:
+        return "Ongoing (flexible schedule)"
+    return _fmt_date(event.date)
+
+
 def send_signup_confirmation(signup):
     """Send a confirmation email to a volunteer after they sign up for an event."""
     user = signup.volunteer.user
@@ -49,9 +55,9 @@ def send_signup_confirmation(signup):
         "",
         f"You're signed up for {event.name}!",
         "",
-        f"  Date:     {_fmt_date(event.date)}",
+        f"  Date:     {_event_when(event)}",
     ]
-    if event.end_time:
+    if event.end_time and not event.is_ongoing:
         lines.append(f"  Ends:     {_fmt_date(event.end_time)}")
     lines += [f"  Location: {event.location}"]
     if event.address:
@@ -87,7 +93,7 @@ def send_org_signup_notification(signup):
         "A new volunteer just signed up for one of your events:",
         "",
         f"  Event:     {event.name}",
-        f"  Date:      {_fmt_date(event.date)}",
+        f"  Date:      {_event_when(event)}",
         "",
         f"  Volunteer: {full_name}",
         f"  Email:     {volunteer.email}",

@@ -1,5 +1,5 @@
 # Matthew Li
-from django.db.models import Q, Count
+from django.db.models import Q, Count, F
 from rest_framework import viewsets, generics, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -21,18 +21,31 @@ from .emails import send_signup_confirmation, send_org_signup_notification
 from decimal import Decimal
 
 
+# Dated events soonest first, ongoing events (no date) after them
+DATE_ORDER = F('date').asc(nulls_last=True)
+
+
+def upcoming_q(prefix=''):
+    """Events that haven't happened yet. Ongoing events always count as upcoming."""
+    return Q(**{f'{prefix}is_ongoing': True}) | Q(**{f'{prefix}date__gte': timezone.now()})
+
+
 def complete_past_signups(profile):
-    """Auto-complete signups for events that have passed and log hours."""
+    """Auto-complete signups for events that have passed and log hours.
+
+    Ongoing events never "pass", so their signups are left for an admin to complete.
+    """
     now = timezone.now()
     past_signups = profile.signups.filter(
         status='signed_up',
+        event__is_ongoing=False,
         event__date__lt=now,
     ).select_related('event')
 
     for signup in past_signups:
         event = signup.event
         # Calculate hours from event duration
-        if event.end_time:
+        if event.date and event.end_time:
             duration = event.end_time - event.date
             hours = Decimal(str(duration.total_seconds() / 3600))
         else:
@@ -120,11 +133,10 @@ class QuestionnaireView(APIView):
         recommended = Event.objects.filter(
             category__in=profile.areas_of_interest,
             status='published',
-            date__gte=timezone.now()
-        )
+        ).filter(upcoming_q())
         if profile.age is not None:
             recommended = recommended.filter(Q(min_age__isnull=True) | Q(min_age__lte=profile.age))
-        recommended = recommended.order_by('date')[:10]
+        recommended = recommended.order_by(DATE_ORDER)[:10]
 
         return Response({
             'message': 'Questionnaire submitted successfully',
@@ -155,9 +167,9 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         # Filter upcoming only (default)
         show_past = self.request.query_params.get('show_past', 'false').lower() == 'true'
         if not show_past:
-            queryset = queryset.filter(date__gte=timezone.now())
+            queryset = queryset.filter(upcoming_q())
 
-        return queryset.order_by('date')
+        return queryset.order_by(DATE_ORDER)
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -193,11 +205,10 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
         events = Event.objects.filter(
             category__in=profile.areas_of_interest,
             status='published',
-            date__gte=timezone.now()
-        )
+        ).filter(upcoming_q())
         if profile.age is not None:
             events = events.filter(Q(min_age__isnull=True) | Q(min_age__lte=profile.age))
-        events = events.order_by('date')[:10]
+        events = events.order_by(DATE_ORDER)[:10]
 
         serializer = EventListSerializer(events, many=True)
         return Response(serializer.data)
@@ -339,7 +350,6 @@ class MyStatsView(APIView):
             'events_attended': signups.filter(status__in=['attended', 'completed']).count(),
             'upcoming_events': signups.filter(
                 status='signed_up',
-                event__date__gte=timezone.now()
-            ).count(),
+            ).filter(upcoming_q('event__')).count(),
             'events_signed_up': signups.exclude(status='cancelled').count(),
         })

@@ -69,8 +69,9 @@ export interface Event {
   name: string;
   description: string;
   category: string;
-  date: string;
-  end_time?: string;
+  is_ongoing: boolean;
+  date: string | null; // null for ongoing events
+  end_time?: string | null;
   location: string;
   address?: string;
   max_volunteers: number;
@@ -92,7 +93,8 @@ export interface EventListItem {
   id: number;
   name: string;
   category: string;
-  date: string;
+  is_ongoing: boolean;
+  date: string | null; // null for ongoing events
   location: string;
   organization_name: string;
   organization_website?: string;

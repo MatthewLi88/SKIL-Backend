@@ -128,7 +128,8 @@ export function EventDetail() {
   }
 
   const isSignedUp = signup && signup.status !== 'cancelled';
-  const isPastEvent = new Date(event.date) < new Date();
+  // Ongoing events have no date, so they never become "past"
+  const isPastEvent = !event.is_ongoing && !!event.date && new Date(event.date) < new Date();
 
   return (
     <div className="event-detail-page">
@@ -151,8 +152,14 @@ export function EventDetail() {
           <div className="event-info">
             <section className="info-section">
               <h3>When</h3>
-              <p>{formatDate(event.date)}</p>
-              {event.end_time && <p>Ends: {formatDate(event.end_time)}</p>}
+              {event.is_ongoing || !event.date ? (
+                <p>Ongoing, flexible schedule</p>
+              ) : (
+                <>
+                  <p>{formatDate(event.date)}</p>
+                  {event.end_time && <p>Ends: {formatDate(event.end_time)}</p>}
+                </>
+              )}
             </section>
 
             <section className="info-section">

@@ -7,7 +7,8 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (event.is_ongoing || !dateString) return 'Ongoing';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       weekday: 'short',

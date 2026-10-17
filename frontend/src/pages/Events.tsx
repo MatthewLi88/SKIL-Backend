@@ -106,7 +106,8 @@ export function Events() {
       ) : (() => {
         const filtered = events.filter((event) => {
           const matchesName = !searchName || event.name.toLowerCase().includes(searchName.toLowerCase());
-          const matchesDate = !searchDate || event.date.startsWith(searchDate);
+          // Ongoing events are available any day, so they match every date search
+          const matchesDate = !searchDate || event.is_ongoing || !event.date || event.date.startsWith(searchDate);
           const matchesOrg = !selectedOrg || event.organization_name === selectedOrg;
           return matchesName && matchesDate && matchesOrg;
         });

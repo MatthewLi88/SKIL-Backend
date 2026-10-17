@@ -1,6 +1,7 @@
 # Matthew Li
 from decimal import Decimal
 from django.contrib import admin
+from django.db.models import F
 from django.utils import timezone
 from .models import VolunteerProfile, Event, EventSignup, Organization, ExternalRegistrationClick, OrganizationClick
 
@@ -42,7 +43,7 @@ def mark_signups_completed(modeladmin, request, queryset):
     updated = 0
     for signup in queryset.filter(status='signed_up').select_related('event'):
         event = signup.event
-        if event.end_time:
+        if event.date and event.end_time:
             duration = event.end_time - event.date
             hours = Decimal(str(duration.total_seconds() / 3600)).quantize(Decimal('0.01'))
         else:
@@ -58,11 +59,29 @@ mark_signups_completed.short_description = "Mark selected as completed (auto-log
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'date', 'organization_name', 'status', 'spots_remaining']
-    list_filter = ['status', 'category', 'date', 'organization']
+    list_display = ['name', 'category', 'when_display', 'organization_name', 'status', 'spots_remaining']
+    list_filter = ['status', 'is_ongoing', 'category', 'date', 'organization']
     search_fields = ['name', 'description', 'location', 'organization_name']
     readonly_fields = ['created_at', 'updated_at']
-    ordering = ['-date']
+    ordering = [F('date').desc(nulls_first=True)]
+
+    class Media:
+        # Hides the date/end time inputs while "Is ongoing" is checked
+        js = ['volunteers/admin/event_ongoing.js']
+
+    def get_fields(self, request, obj=None):
+        # Keep "Is ongoing" directly above the date fields in the form
+        fields = list(super().get_fields(request, obj))
+        if 'is_ongoing' in fields and 'date' in fields:
+            fields.remove('is_ongoing')
+            fields.insert(fields.index('date'), 'is_ongoing')
+        return fields
+
+    @admin.display(description='Date', ordering='date')
+    def when_display(self, obj):
+        if obj.is_ongoing:
+            return 'Ongoing'
+        return timezone.localtime(obj.date).strftime('%b %d, %Y, %I:%M %p') if obj.date else '-'
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

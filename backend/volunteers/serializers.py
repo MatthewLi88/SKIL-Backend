@@ -162,7 +162,7 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'name', 'description', 'category', 'date', 'end_time',
+            'id', 'name', 'description', 'category', 'is_ongoing', 'date', 'end_time',
             'location', 'address', 'max_volunteers', 'min_age', 'organization_name',
             'organization_website', 'contact_email', 'status', 'registration_type',
             'external_url', 'spots_remaining', 'is_full', 'is_signed_up', 'signup_status',
@@ -269,7 +269,7 @@ class EventListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'name', 'category', 'date', 'location',
+            'id', 'name', 'category', 'is_ongoing', 'date', 'location',
             'organization_name', 'organization_website', 'spots_remaining', 'is_full', 'status', 'min_age'
         ]
 

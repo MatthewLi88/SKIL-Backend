@@ -128,7 +128,8 @@ export function Profile() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Ongoing';
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
@@ -139,13 +140,14 @@ export function Profile() {
   };
 
   // Split signups into upcoming vs past
+  // Ongoing events have no date: they stay "upcoming" until an admin marks the signup done
   const now = new Date();
-  const upcomingSignups = signups.filter(
-    (s) => s.status !== 'cancelled' && new Date(s.event.date) >= now
-  );
-  const pastSignups = signups.filter(
-    (s) => s.status !== 'cancelled' && new Date(s.event.date) < now
-  );
+  const isUpcoming = (s: (typeof signups)[number]) =>
+    s.event.is_ongoing || !s.event.date
+      ? s.status === 'signed_up'
+      : new Date(s.event.date) >= now;
+  const upcomingSignups = signups.filter((s) => s.status !== 'cancelled' && isUpcoming(s));
+  const pastSignups = signups.filter((s) => s.status !== 'cancelled' && !isUpcoming(s));
 
   return (
     <div className="profile-page">

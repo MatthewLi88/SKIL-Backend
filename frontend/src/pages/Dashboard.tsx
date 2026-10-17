@@ -53,7 +53,7 @@ export function Dashboard() {
   }
 
   const upcomingSignups = mySignups.filter(
-    (s) => s.status === 'signed_up' && new Date(s.event.date) > new Date()
+    (s) => s.status === 'signed_up' && (s.event.is_ongoing || (!!s.event.date && new Date(s.event.date) > new Date()))
   );
 
   return (
@@ -94,13 +94,15 @@ export function Dashboard() {
                 <h3 className="event-title">{signup.event.name}</h3>
                 <div className="event-details">
                   <p className="event-date">
-                    {new Date(signup.event.date).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
+                    {signup.event.is_ongoing || !signup.event.date
+                      ? 'Ongoing'
+                      : new Date(signup.event.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
                   </p>
                   <p className="event-location">{signup.event.location}</p>
                 </div>

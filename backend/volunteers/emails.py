@@ -32,7 +32,9 @@ def _send_in_background(subject, text, to):
 
 
 def _fmt_date(dt):
-    return dt.strftime('%A, %B %d, %Y at %I:%M %p')
+    # Dates are stored in UTC; show them in Dallas time (settings.TIME_ZONE = America/Chicago)
+    from django.utils import timezone
+    return timezone.localtime(dt).strftime('%A, %B %d, %Y at %I:%M %p %Z')
 
 
 def _event_when(event):

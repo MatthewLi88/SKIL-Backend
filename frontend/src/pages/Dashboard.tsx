@@ -5,6 +5,16 @@ import { useAuth } from '../context/AuthContext';
 import { getMyStats, getRecommendedEvents, getMySignups } from '../api/events';
 import { EventCard } from '../components/EventCard';
 import type { VolunteerStats, EventListItem, EventSignup } from '../types';
+import { useCountUp } from '../hooks/useMotion';
+
+function StatValue({ value, decimals = 0 }: { value: number; decimals?: number }) {
+  const { ref, display } = useCountUp(value);
+  return (
+    <span className="stat-value" ref={ref}>
+      {decimals === 0 ? Math.round(display) : parseFloat(display.toFixed(decimals))}
+    </span>
+  );
+}
 
 export function Dashboard() {
   const { user, profile } = useAuth();
@@ -65,15 +75,18 @@ export function Dashboard() {
       {/* Stats Section */}
       <section className="stats-section">
         <div className="stat-card">
-          <span className="stat-value">{stats?.total_hours || 0}</span>
+          <StatValue
+            value={stats?.total_hours || 0}
+            decimals={2}
+          />
           <span className="stat-label">Total Hours</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value">{stats?.events_attended || 0}</span>
+          <StatValue value={stats?.events_attended || 0} />
           <span className="stat-label">Events Attended</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value">{stats?.upcoming_events || 0}</span>
+          <StatValue value={stats?.upcoming_events || 0} />
           <span className="stat-label">Upcoming Events</span>
         </div>
       </section>

@@ -1,6 +1,7 @@
 // Matthew Li
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useScrollReveal, useScrolled } from '../hooks/useMotion';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,6 +10,9 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const scrolled = useScrolled();
+  useScrollReveal();
 
   const handleLogout = () => {
     logout();
@@ -17,19 +21,19 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="app">
-      <header className="header">
+      <header className={`header${scrolled ? ' header-scrolled' : ''}`}>
         <div className="header-content">
           <Link to="/" className="logo">
             <img src="/logo.png" alt="Southlake Circle" className="logo-img" />
             <span>Southlake Circle</span>
           </Link>
           <nav className="nav">
-            <Link to="/events">Events</Link>
-            <Link to="/organizations">Organizations</Link>
+            <NavLink to="/events">Events</NavLink>
+            <NavLink to="/organizations">Organizations</NavLink>
             {isLoggedIn ? (
               <>
-                <Link to="/dashboard">Dashboard</Link>
-                <Link to="/profile">Profile</Link>
+                <NavLink to="/dashboard">Dashboard</NavLink>
+                <NavLink to="/profile">Profile</NavLink>
                 <span className="user-name">Hi, {user?.first_name || user?.username}</span>
                 <button onClick={handleLogout} className="btn-link">
                   Logout
@@ -37,7 +41,7 @@ export function Layout({ children }: LayoutProps) {
               </>
             ) : (
               <>
-                <Link to="/login">Login</Link>
+                <NavLink to="/login">Login</NavLink>
                 <Link to="/register" className="btn btn-primary">
                   Sign Up
                 </Link>
@@ -46,7 +50,10 @@ export function Layout({ children }: LayoutProps) {
           </nav>
         </div>
       </header>
-      <main className="main">{children}</main>
+      {/* Keyed on the route so each page fades in when you navigate */}
+      <main className="main" key={pathname}>
+        {children}
+      </main>
       <footer className="footer">
         <p>Southlake Circle - Change moves in Circles</p>
       </footer>
